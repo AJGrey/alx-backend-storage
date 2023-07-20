@@ -4,6 +4,7 @@
 
 
 import redis
+import uuid
 from uuid import uuid4
 from typing import Union, Callable, Optional
 from functools import wraps
