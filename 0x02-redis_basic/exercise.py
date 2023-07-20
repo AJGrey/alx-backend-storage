@@ -4,8 +4,23 @@
 
 
 import redis
-import uuid
-from typing import Union
+from uuid import uuid4
+from typing import Union, Callable, Optional
+from functools import wraps
+
+
+
+def call_history(method: Callable) -> Callable:
+    '''store the history of inputs and outputs for a particular function'''
+    @wraps(method)
+    def wrapper(self, *args, **kwargs):
+        '''wrap the decorated function and return the wrapper'''
+        input = str(args)
+        self._redis.rpush(method.__qualname__ + ":inputs", input)
+        output = str(method(self, *args, **kwargs))
+        self._redis.rpush(method.__qualname__ + ":outputs", output)
+        return output
+    return wrapper
 
 
 class Cache:
@@ -15,8 +30,31 @@ class Cache:
         self._redis = redis.Redis()
         self._redis.flushdb()
 
+    @call_history
     def store(self, data: Union[str, bytes, int, float]) -> str:
         """ Create a store method to return a string """
         key = str(uuid.uuid4())
         self._redis.set(key, data)
         return key
+
+    def get(self, key: str,
+            fn: Optional[Callable] = None) -> Union[str, bytes, int, float]:
+        '''convert the data back to the desired format'''
+        value = self._redis.get(key)
+        if fn:
+            value = fn(value)
+        return value
+
+    def get_str(self, key: str) -> str:
+        '''parametrize Cache.get with correct conversion function'''
+        value = self._redis.get(key)
+        return value.decode("utf-8")
+
+    def get_int(self, key: str) -> int:
+        '''parametrize Cache.get with correct conversion function'''
+        value = self._redis.get(key)
+        try:
+            value = int(value.decode("utf-8"))
+        except Exception:
+            value = 0
+        return value
