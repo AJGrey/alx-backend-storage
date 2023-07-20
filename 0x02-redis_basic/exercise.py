@@ -10,7 +10,6 @@ from typing import Union, Callable, Optional
 from functools import wraps
 
 
-
 def count_calls(method: Callable) -> Callable:
     '''count how many times methods of Cache class are called'''
     key = method.__qualname__
@@ -58,8 +57,8 @@ def replay(fn: Callable):
         except Exception:
             outp = ""
         print("{}(*{}) -> {}".format(func_name, inp, outp))
-        
-        
+
+
 class Cache:
     """ Init cache declaration """
     def __init__(self):
