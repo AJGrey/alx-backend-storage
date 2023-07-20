@@ -1,4 +1,4 @@
-#!/usr/bin/ env python3
+#!/usr/bin/env python3
 """ A python function that changes the topics of all documents based on the name
 """
 
